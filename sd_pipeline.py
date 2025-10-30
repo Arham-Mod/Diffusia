@@ -13,12 +13,11 @@ import torch
 from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 from PIL import Image
 
-# ----------------------------
 # CONFIGURATION
-# ----------------------------
+
 MODEL_ID = "runwayml/stable-diffusion-v1-5"
 OUT_FILE = "generated_image.png"
-PROMPT = "Mohd Arham, high detail"
+PROMPT = "Harshit, high detail"
 NUM_INFERENCE_STEPS = 100
 GUIDANCE_SCALE = 7.5
 SEED = 22
@@ -28,30 +27,26 @@ USE_XFORMERS = False
 ENABLE_SLICING = True
 LOW_CPU_MEM = True
 
-# ----------------------------
 # DEVICE SETUP
-# ----------------------------
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.float16 if device == "cuda" else torch.float32
 print(f"✅ Device: {device} | Torch version: {torch.__version__}")
 
-# ----------------------------
+
 # 1) LOAD PIPELINE
-# ----------------------------
+
 pipe = StableDiffusionPipeline.from_pretrained(
     MODEL_ID,
     torch_dtype=dtype,
-    safety_checker=None,          # disables NSFW filter (optional)
-    feature_extractor=None,       # disables unnecessary preprocessing
-    low_cpu_mem_usage=LOW_CPU_MEM,
+    safety_checker=None,              feature_extractor=None,           low_cpu_mem_usage=LOW_CPU_MEM,
 )
 
 # Switch scheduler to a fast and stable one
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 
-# ----------------------------
 # 2) MEMORY OPTIMIZATIONS
-# ----------------------------
+
 if device == "cuda":
     pipe.to(device)
 
@@ -68,17 +63,16 @@ if device == "cuda":
 else:
     pipe.to("cpu")
 
-# ----------------------------
+
 # 3) SEED CONTROL
-# ----------------------------
+
 generator = torch.Generator(device=device).manual_seed(SEED)
 
-# ----------------------------
+
 # 4) INFERENCE
-# ----------------------------
+
 print("🚀 Generating image... (this may take a minute)")
 
-# autocast avoids precision mismatch on CUDA
 with torch.autocast(device_type=device, dtype=dtype):
     result = pipe(
         PROMPT,
